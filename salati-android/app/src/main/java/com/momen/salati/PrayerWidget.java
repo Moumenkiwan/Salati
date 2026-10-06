@@ -22,7 +22,8 @@ import java.util.TimeZone;
 /** Home-screen widget: next prayer with a live countdown, plus today's five times. */
 public class PrayerWidget extends AppWidgetProvider {
     private static final String[] KEYS = {"fajr", "dhuhr", "asr", "maghrib", "isha"};
-    private static final String[] NAMES = {"الفجر", "الظهر", "العصر", "المغرب", "العشاء"};
+    private static final String[] NAMES_AR = {"الفجر", "الظهر", "العصر", "المغرب", "العشاء"};
+    private static final String[] NAMES_EN = {"Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"};
     private static final int[] NAME_IDS = {R.id.n0, R.id.n1, R.id.n2, R.id.n3, R.id.n4};
     private static final int[] TIME_IDS = {R.id.t0, R.id.t1, R.id.t2, R.id.t3, R.id.t4};
     private static final int RC_REFRESH = 300;
@@ -59,7 +60,9 @@ public class PrayerWidget extends AppWidgetProvider {
     }
 
     private static void render(Context c, AppWidgetManager m, int[] ids) {
-        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_prayer);
+        boolean en = Alarms.en(c);
+        String[] NAMES = en ? NAMES_EN : NAMES_AR;
+        RemoteViews v = new RemoteViews(c.getPackageName(), en ? R.layout.widget_prayer_en : R.layout.widget_prayer);
         v.setOnClickPendingIntent(R.id.root, Notif.openApp(c));
         long now = System.currentTimeMillis();
         long nextAt = 0;
@@ -81,9 +84,9 @@ public class PrayerWidget extends AppWidgetProvider {
                 }
             }
             if (today == null) {
-                v.setTextViewText(R.id.city, "صلاتي");
-                v.setTextViewText(R.id.nextName, "افتح التطبيق");
-                v.setTextViewText(R.id.nextAt, "لتحديث المواقيت");
+                v.setTextViewText(R.id.city, en ? "Salati" : "صلاتي");
+                v.setTextViewText(R.id.nextName, en ? "Open the app" : "افتح التطبيق");
+                v.setTextViewText(R.id.nextAt, en ? "to load prayer times" : "لتحديث المواقيت");
             } else {
                 int nextIdx = -1;
                 for (int k = 0; k < 5; k++) {
@@ -109,7 +112,7 @@ public class PrayerWidget extends AppWidgetProvider {
                 }
                 v.setTextViewText(R.id.city, city);
                 v.setTextViewText(R.id.nextName, name);
-                v.setTextViewText(R.id.nextAt, nextAt > 0 ? "الساعة " + f.format(new Date(nextAt)) : "");
+                v.setTextViewText(R.id.nextAt, nextAt > 0 ? (en ? "at " : "الساعة ") + f.format(new Date(nextAt)) : "");
                 if (nextAt > now) {
                     long base = SystemClock.elapsedRealtime() + (nextAt - now);
                     v.setChronometer(R.id.countdown, base, null, true);
@@ -117,7 +120,7 @@ public class PrayerWidget extends AppWidgetProvider {
                 }
             }
         } catch (Exception e) {
-            v.setTextViewText(R.id.nextName, "افتح التطبيق");
+            v.setTextViewText(R.id.nextName, en ? "Open the app" : "افتح التطبيق");
         }
         m.updateAppWidget(ids, v);
 

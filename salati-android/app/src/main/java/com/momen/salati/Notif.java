@@ -20,14 +20,14 @@ final class Notif {
     static void ensure(Context c) {
         NotificationManager nm = c.getSystemService(NotificationManager.class);
         if (nm == null) return;
-        NotificationChannel a = new NotificationChannel(CH_ADHAN, "الأذان", NotificationManager.IMPORTANCE_HIGH);
+        NotificationChannel a = new NotificationChannel(CH_ADHAN, Alarms.L(c, "الأذان", "Adhan"), NotificationManager.IMPORTANCE_HIGH);
         a.setSound(null, null);
         a.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-        NotificationChannel z = new NotificationChannel(CH_ZIKR, "الأذكار", NotificationManager.IMPORTANCE_DEFAULT);
+        NotificationChannel z = new NotificationChannel(CH_ZIKR, Alarms.L(c, "الأذكار", "Dhikr reminders"), NotificationManager.IMPORTANCE_DEFAULT);
         z.setSound(null, null);
         z.enableVibration(false);
         z.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-        NotificationChannel q = new NotificationChannel(CH_QURAN, "تلاوة القرآن", NotificationManager.IMPORTANCE_LOW);
+        NotificationChannel q = new NotificationChannel(CH_QURAN, Alarms.L(c, "تلاوة القرآن", "Quran recitation"), NotificationManager.IMPORTANCE_LOW);
         q.setSound(null, null);
         q.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         nm.createNotificationChannel(a);
@@ -46,21 +46,21 @@ final class Notif {
         PendingIntent stopPi = PendingIntent.getService(c, 1, stop, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         return new Notification.Builder(c, CH_ADHAN)
                 .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-                .setContentTitle("حان الآن موعد أذان " + name)
-                .setContentText("اضغط إيقاف لإيقاف الأذان")
+                .setContentTitle(Alarms.en(c) ? "It's time for " + name : "حان الآن موعد أذان " + name)
+                .setContentText(Alarms.L(c, "اضغط «إيقاف» لإيقاف الأذان", "Tap Stop to end the adhan"))
                 .setCategory(Notification.CATEGORY_ALARM)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setContentIntent(openApp(c))
                 .setOngoing(true)
-                .addAction(new Notification.Action.Builder((android.graphics.drawable.Icon) null, "إيقاف", stopPi).build())
+                .addAction(new Notification.Action.Builder((android.graphics.drawable.Icon) null, Alarms.L(c, "إيقاف", "Stop"), stopPi).build())
                 .build();
     }
 
     static Notification quran(Context c, String title) {
         return new Notification.Builder(c, CH_QURAN)
                 .setSmallIcon(android.R.drawable.ic_media_play)
-                .setContentTitle(title == null || title.isEmpty() ? "تلاوة القرآن" : title)
-                .setContentText("ياسر الدوسري")
+                .setContentTitle(title == null || title.isEmpty() ? Alarms.L(c, "تلاوة القرآن", "Quran recitation") : title)
+                .setContentText(Alarms.L(c, "ياسر الدوسري", "Yasser Al-Dosari"))
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setContentIntent(openApp(c))
                 .setOngoing(true)
@@ -70,7 +70,7 @@ final class Notif {
     static Notification zikr(Context c, String text) {
         return new Notification.Builder(c, CH_ZIKR)
                 .setSmallIcon(android.R.drawable.star_on)
-                .setContentTitle("ذكر")
+                .setContentTitle(Alarms.L(c, "ذِكر", "Dhikr"))
                 .setContentText(text)
                 .setStyle(new Notification.BigTextStyle().bigText(text))
                 .setVisibility(Notification.VISIBILITY_PUBLIC)

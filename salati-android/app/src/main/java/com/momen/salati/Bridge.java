@@ -34,7 +34,7 @@ public class Bridge {
 
     @JavascriptInterface
     public void testAdhan() {
-        Intent s = new Intent(act, AdhanService.class).putExtra("name", "(تجربة)");
+        Intent s = new Intent(act, AdhanService.class).putExtra("name", Alarms.L(act, "(تجربة)", "(test)"));
         act.startForegroundService(s);
     }
 
@@ -105,6 +105,12 @@ public class Bridge {
         act.runOnUiThread(() -> {
             try { act.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); } catch (Exception ignored) {}
         });
+    }
+
+    @JavascriptInterface
+    public void setLang(String lang) {
+        Alarms.prefs(act).edit().putString("lang", "en".equals(lang) ? "en" : "ar").apply();
+        PrayerWidget.refresh(act);
     }
 
     @JavascriptInterface

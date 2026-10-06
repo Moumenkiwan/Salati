@@ -21,6 +21,16 @@ final class Alarms {
         return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
+    /** True when the user picked English inside the app. */
+    static boolean en(Context c) {
+        return "en".equals(prefs(c).getString("lang", "ar"));
+    }
+
+    /** Picks the Arabic or English text for the user's language. */
+    static String L(Context c, String ar, String en) {
+        return en(c) ? en : ar;
+    }
+
     /** Schedules the next enabled adhan from the stored list [{n:name, t:epochMillis}, ...]. */
     static void scheduleNextAdhan(Context c) {
         AlarmManager am = c.getSystemService(AlarmManager.class);

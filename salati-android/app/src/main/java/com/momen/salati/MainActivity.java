@@ -168,7 +168,7 @@ public class MainActivity extends Activity {
         try {
             getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         } catch (Exception ignored) {}
-        String name = "ملف أذان";
+        String name = Alarms.L(this, "ملف أذان", "Adhan file");
         try (Cursor c = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
             if (c != null && c.moveToFirst()) name = c.getString(0);
         } catch (Exception ignored) {}

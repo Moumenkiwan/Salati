@@ -232,7 +232,7 @@ public class QuranService extends Service {
     }
 
     private String title() {
-        return "سورة " + names(this)[track];
+        return Alarms.L(this, "سورة ", "Surah ") + names(this)[track];
     }
 
     private void update() {
@@ -240,16 +240,16 @@ public class QuranService extends Service {
         boolean loading = wantPlay && !prepared;
         session.setMetadata(new MediaMetadata.Builder()
                 .putString(MediaMetadata.METADATA_KEY_TITLE, title())
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, "ياسر الدوسري")
-                .putString(MediaMetadata.METADATA_KEY_ALBUM, "القرآن الكريم")
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, Alarms.L(this, "ياسر الدوسري", "Yasser Al-Dosari"))
+                .putString(MediaMetadata.METADATA_KEY_ALBUM, Alarms.L(this, "القرآن الكريم", "The Holy Quran"))
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, duration())
                 .build());
         session.setPlaybackState(new PlaybackState.Builder()
                 .setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE
                         | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS
                         | PlaybackState.ACTION_SEEK_TO | PlaybackState.ACTION_STOP)
-                .addCustomAction(new PlaybackState.CustomAction.Builder(ACTION_RESTART, "من البداية", android.R.drawable.ic_menu_rotate).build())
-                .addCustomAction(new PlaybackState.CustomAction.Builder(ACTION_CLOSE, "إغلاق", android.R.drawable.ic_menu_close_clear_cancel).build())
+                .addCustomAction(new PlaybackState.CustomAction.Builder(ACTION_RESTART, Alarms.L(this, "من البداية", "From the start"), android.R.drawable.ic_menu_rotate).build())
+                .addCustomAction(new PlaybackState.CustomAction.Builder(ACTION_CLOSE, Alarms.L(this, "إغلاق", "Close"), android.R.drawable.ic_menu_close_clear_cancel).build())
                 .setState(loading ? PlaybackState.STATE_BUFFERING : playing ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED,
                         position(), playing ? 1f : 0f)
                 .build());
@@ -284,16 +284,16 @@ public class QuranService extends Service {
         Notification.Builder b = new Notification.Builder(this, Notif.CH_QURAN)
                 .setSmallIcon(android.R.drawable.ic_media_play)
                 .setContentTitle(title())
-                .setContentText("ياسر الدوسري")
+                .setContentText(Alarms.L(this, "ياسر الدوسري", "Yasser Al-Dosari"))
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setContentIntent(Notif.openApp(this))
                 .setDeleteIntent(action(ACTION_CLOSE, 15))
                 .setOngoing(playing)
-                .addAction(new Notification.Action.Builder(android.R.drawable.ic_media_previous, "السابقة", action(ACTION_PREV, 11)).build())
+                .addAction(new Notification.Action.Builder(android.R.drawable.ic_media_previous, Alarms.L(this, "السابقة", "Previous"), action(ACTION_PREV, 11)).build())
                 .addAction(new Notification.Action.Builder(playing ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play,
-                        playing ? "إيقاف مؤقت" : "تشغيل", action(ACTION_TOGGLE, 12)).build())
-                .addAction(new Notification.Action.Builder(android.R.drawable.ic_media_next, "التالية", action(ACTION_NEXT, 13)).build())
-                .addAction(new Notification.Action.Builder(android.R.drawable.ic_menu_rotate, "من البداية", action(ACTION_RESTART, 14)).build())
+                        playing ? Alarms.L(this, "إيقاف مؤقت", "Pause") : Alarms.L(this, "تشغيل", "Play"), action(ACTION_TOGGLE, 12)).build())
+                .addAction(new Notification.Action.Builder(android.R.drawable.ic_media_next, Alarms.L(this, "التالية", "Next"), action(ACTION_NEXT, 13)).build())
+                .addAction(new Notification.Action.Builder(android.R.drawable.ic_menu_rotate, Alarms.L(this, "من البداية", "From the start"), action(ACTION_RESTART, 14)).build())
                 .setStyle(new Notification.MediaStyle()
                         .setMediaSession(session.getSessionToken())
                         .setShowActionsInCompactView(0, 1, 2));
