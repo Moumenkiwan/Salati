@@ -79,6 +79,34 @@ public class Bridge {
     @JavascriptInterface
     public String quranState() { String s = QuranService.lastState(); return s == null ? "" : s; }
 
+    // ----- qibla, location, widget, updates -----
+    @JavascriptInterface
+    public void compassStart(double lat, double lng) { act.compassStart(lat, lng); }
+
+    @JavascriptInterface
+    public void compassStop() { act.compassStop(); }
+
+    @JavascriptInterface
+    public void locate() { act.locate(); }
+
+    @JavascriptInterface
+    public void setPrayerData(String json) {
+        Alarms.prefs(act).edit().putString("prayerData", json).apply();
+        PrayerWidget.refresh(act);
+    }
+
+    @JavascriptInterface
+    public void checkUpdate() {
+        Updates.check(act, json -> act.js("window.onUpdate&&window.onUpdate(" + json + ")"));
+    }
+
+    @JavascriptInterface
+    public void openUrl(String url) {
+        act.runOnUiThread(() -> {
+            try { act.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); } catch (Exception ignored) {}
+        });
+    }
+
     @JavascriptInterface
     public String version() {
         try { return act.getPackageManager().getPackageInfo(act.getPackageName(), 0).versionName; }

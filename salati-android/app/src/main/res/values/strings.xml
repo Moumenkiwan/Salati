@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">صلاتي</string>
+    <string name="widget_desc">الصلاة القادمة ومواقيت اليوم</string>
 </resources>

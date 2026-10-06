@@ -9,5 +9,6 @@ public class BootReceiver extends BroadcastReceiver {
     public void onReceive(Context c, Intent intent) {
         Alarms.scheduleNextAdhan(c);
         Alarms.scheduleZikr(c);
+        PrayerWidget.refresh(c);
     }
 }

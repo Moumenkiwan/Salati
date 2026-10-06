@@ -21,7 +21,70 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     static final int REQ_PICK_ADHAN = 7;
+    static final int REQ_LOCATION = 8;
     WebView web;
+    Compass compass;
+    private boolean compassWanted = false;
+    private double compassLat, compassLng;
+
+    void js(String code) {
+        runOnUiThread(() -> { if (web != null) web.evaluateJavascript(code, null); });
+    }
+
+    // ----- compass -----
+    void compassStart(double lat, double lng) {
+        compassLat = lat; compassLng = lng; compassWanted = true;
+        runOnUiThread(() -> {
+            if (compass == null) compass = new Compass(this, (deg, acc) -> js("window.onHeading&&window.onHeading(" + deg + "," + acc + ")"));
+            if (!compass.available()) { js("window.onHeading&&window.onHeading(-1,0)"); return; }
+            compass.start(lat, lng);
+        });
+    }
+
+    void compassStop() {
+        compassWanted = false;
+        runOnUiThread(() -> { if (compass != null) compass.stop(); });
+    }
+
+    // ----- location -----
+    void locate() {
+        runOnUiThread(() -> {
+            if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, REQ_LOCATION);
+            } else {
+                doLocate();
+            }
+        });
+    }
+
+    private void doLocate() {
+        Locator.locate(this, (loc, err) -> {
+            if (loc != null) js("window.onLocation&&window.onLocation({lat:" + loc.getLatitude() + ",lng:" + loc.getLongitude() + "})");
+            else js("window.onLocation&&window.onLocation({error:" + JSONObject.quote(err == null ? "error" : err) + "})");
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode != REQ_LOCATION) return;
+        boolean ok = false;
+        for (int r : results) if (r == PackageManager.PERMISSION_GRANTED) ok = true;
+        if (ok) doLocate();
+        else js("window.onLocation&&window.onLocation({error:\"denied\"})");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (compass != null) compass.pauseSensors();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (compassWanted && compass != null) compass.start(compassLat, compassLng);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
