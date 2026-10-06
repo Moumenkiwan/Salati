@@ -22,9 +22,12 @@ jobs:
         with:
           gradle-version: '8.9'
       - name: Build debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: |
+          gradle assembleDebug --no-daemon --stacktrace
       - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk salati.apk
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk salati.apk
+          cp salati.apk salati-update.apk
       - uses: actions/upload-artifact@v4
         with:
           name: salati-apk
@@ -34,5 +37,7 @@ jobs:
         with:
           tag_name: v${{ github.run_number }}
           name: صلاتي 1.${{ github.run_number }}
-          files: salati-android/salati.apk
+          files: |
+            salati-android/salati.apk
+            salati-android/salati-update.apk
           make_latest: true
