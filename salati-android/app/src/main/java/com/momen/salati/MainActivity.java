@@ -47,6 +47,9 @@ public class MainActivity extends Activity {
 
         web.addJavascriptInterface(new Bridge(this), "Android");
         web.setWebChromeClient(new WebChromeClient());
+        QuranService.listener = json -> runOnUiThread(() -> {
+            if (web != null) web.evaluateJavascript("window.onNativeAudio&&window.onNativeAudio(" + json + ")", null);
+        });
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest req) {
@@ -54,6 +57,12 @@ public class MainActivity extends Activity {
                 if ("file".equals(u.getScheme())) return false;
                 try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) {}
                 return true;
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                String s = QuranService.lastState();
+                if (s != null) view.evaluateJavascript("window.onNativeAudio&&window.onNativeAudio(" + s + ")", null);
             }
         });
         if (savedInstanceState != null) web.restoreState(savedInstanceState);
@@ -100,6 +109,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        QuranService.listener = null;
         if (web != null) web.destroy();
         super.onDestroy();
     }

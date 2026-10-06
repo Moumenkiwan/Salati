@@ -256,6 +256,7 @@ select,input[type=search]{background:var(--surface);border:1px solid var(--line)
       <button class="pp" id="aPlay" aria-label="تشغيل"><svg viewBox="0 0 24 24" id="ppIcon"><path d="M8 5v14l11-7z"/></svg></button>
       <button id="aNext" aria-label="السورة التالية"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
     </div>
+    <div class="row" style="justify-content:center"><button class="chip" id="aRestart" style="color:inherit;border-color:currentColor">↺ من البداية</button></div>
     <label class="row small" style="justify-content:center"><input type="checkbox" id="autoNext" checked> تشغيل السورة التالية تلقائيًا</label>
     <div class="fallback" id="fallback" hidden>
       <span>هذه النسخة من الصفحة لا تسمح بتشغيل الصوت بداخلها. افتح التلاوة وستشتغل مباشرة بصفحة جديدة:</span>
@@ -264,7 +265,7 @@ select,input[type=search]{background:var(--surface);border:1px solid var(--line)
   </div>
   <input type="search" id="lSearch" placeholder="ابحث عن سورة" aria-label="بحث عن سورة للاستماع">
   <ul class="slist" id="llist"></ul>
-  <p class="note">التلاوات من موقع mp3quran.net.</p>
+  <p class="note">التلاوات من موقع mp3quran.net.<span id="verNote"></span></p>
   <audio id="audio" preload="none"></audio>
 </section>
 
@@ -528,10 +529,18 @@ const SERVER="https://server11.mp3quran.net/yasser/";
 const url=i=>SERVER+String(i+1).padStart(3,"0")+".mp3";
 const au=$("audio");let tr=store.get("track",0),blocked=false;
 buildList($("llist"),i=>loadTrack(i,true));
+if(NATIVE){try{Android.quranInit(JSON.stringify(SURAH.map(x=>x[0])))}catch(e){}}
+let nDur=0;
+window.onNativeAudio=st=>{if(!st)return;tr=st.i;$("nowName").textContent="سورة "+SURAH[tr][0];
+  $("llist").querySelectorAll("li").forEach(li=>li.classList.toggle("playing",+li.dataset.i===tr));
+  setPP(st.playing||st.loading);nDur=st.dur||0;$("tCur").textContent=st.loading?"…":mmss(st.pos/1000);$("tDur").textContent=mmss(nDur/1000);
+  if(!seekDrag)$("seek").value=nDur?Math.round(st.pos/nDur*1000):0;store.set("track",tr)};
+let seekDrag=false;$("seek").addEventListener("pointerdown",()=>seekDrag=true);addEventListener("pointerup",()=>seekDrag=false);
 $("lSearch").addEventListener("input",e=>filterList($("llist"),e.target.value));
 const mmss=s=>!isFinite(s)?"0:00":(s>=3600?Math.floor(s/3600)+":"+pad(Math.floor(s%3600/60)):Math.floor(s/60))+":"+pad(Math.floor(s%60));
 function setPP(p){$("ppIcon").innerHTML=p?'<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>':'<path d="M8 5v14l11-7z"/>';$("aPlay").setAttribute("aria-label",p?"إيقاف مؤقت":"تشغيل")}
 function loadTrack(i,play){tr=(i+114)%114;store.set("track",tr);$("nowName").textContent="سورة "+SURAH[tr][0];
+  if(NATIVE){$("llist").querySelectorAll("li").forEach(li=>li.classList.toggle("playing",+li.dataset.i===tr));if(play){setPP(true);$("tCur").textContent="…";try{Android.quranPlay(tr)}catch(e){}}return}
   $("fbLink").href=url(tr);$("fbName").textContent=SURAH[tr][0];
   $("llist").querySelectorAll("li").forEach(li=>li.classList.toggle("playing",+li.dataset.i===tr));
   au.src=url(tr);$("seek").value=0;$("tCur").textContent="0:00";$("tDur").textContent="0:00";
@@ -545,10 +554,13 @@ au.addEventListener("playing",()=>{if(NATIVE)try{Android.mediaState(true,"سور
 au.addEventListener("loadedmetadata",()=>{$("tDur").textContent=mmss(au.duration);$("fallback").hidden=true;blocked=false});
 au.addEventListener("timeupdate",()=>{$("tCur").textContent=mmss(au.currentTime);if(au.duration)$("seek").value=Math.round(au.currentTime/au.duration*1000)});
 au.addEventListener("ended",()=>{if($("autoNext").checked&&tr<113)loadTrack(tr+1,true);else if(NATIVE)try{Android.mediaState(false,"")}catch(e){}});
-$("seek").addEventListener("input",e=>{if(au.duration)au.currentTime=e.target.value/1000*au.duration});
-$("aPlay").onclick=()=>{if(!au.src)loadTrack(tr,false);if(au.paused)doPlay();else{au.pause();if(NATIVE)try{Android.mediaState(false,"")}catch(e){}}};
+$("seek").addEventListener("input",e=>{if(NATIVE){if(nDur)$("tCur").textContent=mmss(e.target.value/1000*nDur/1000);return}if(au.duration)au.currentTime=e.target.value/1000*au.duration});
+$("seek").addEventListener("change",e=>{seekDrag=false;if(NATIVE&&nDur){try{Android.quranSeek(e.target.value/1000*nDur)}catch(err){}}});
+$("aRestart").onclick=()=>{if(NATIVE){try{Android.quranRestart()}catch(e){}}else if(au.src){au.currentTime=0;if(au.paused)doPlay()}};
+$("aPlay").onclick=()=>{if(NATIVE){try{Android.quranToggle(tr)}catch(e){}return}if(!au.src)loadTrack(tr,false);if(au.paused)doPlay();else{au.pause();if(NATIVE)try{Android.mediaState(false,"")}catch(e){}}};
 $("aPrev").onclick=()=>loadTrack(tr-1,true);$("aNext").onclick=()=>loadTrack(tr+1,true);
-$("autoNext").checked=store.get("autoNext",true);$("autoNext").onchange=e=>store.set("autoNext",e.target.checked);
+$("autoNext").checked=store.get("autoNext",true);$("autoNext").onchange=e=>{store.set("autoNext",e.target.checked);if(NATIVE)try{Android.quranAutoNext(e.target.checked)}catch(err){}};
+if(NATIVE){try{Android.quranAutoNext($("autoNext").checked);const st=Android.quranState();if(st)window.onNativeAudio(JSON.parse(st))}catch(e){}}
 if("mediaSession" in navigator){try{navigator.mediaSession.setActionHandler("nexttrack",()=>loadTrack(tr+1,true));navigator.mediaSession.setActionHandler("previoustrack",()=>loadTrack(tr-1,true))}catch(e){}}
 loadTrack(tr,false);
 
@@ -607,6 +619,7 @@ $("wMakeAll").onclick=makeAll;
 $("wDlAll").onclick=()=>{if(NATIVE){let n=0;$("wAll").querySelectorAll("figure").forEach((f,i)=>{if(Android.saveImage(f.querySelector("img").src,`zikr-${i+1}.png`))n++;f.querySelector("a").textContent="انحفظت ✓"});try{Android.toast(`انحفظت ${n} خلفيات بالمعرض (ألبوم Salati)`)}catch(e){}return}$("wAll").querySelectorAll("a").forEach((a,i)=>setTimeout(()=>a.click(),i*350))};
 
 /* ---------- Boot ---------- */
+if(NATIVE){try{const v=Android.version();if(v)$("verNote").textContent=" · نسخة التطبيق "+v}catch(e){}}
 refreshDay();showZikr();zTimer=setInterval(nextZikr,25000);renderSeb();setInterval(tick,1000);
 addEventListener("resize",drawHeroPattern);
 const startTab=(location.hash||"").slice(1)||store.get("tab","salah");showTab(startTab);

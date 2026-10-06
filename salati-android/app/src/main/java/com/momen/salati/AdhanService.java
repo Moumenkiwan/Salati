@@ -37,6 +37,9 @@ public class AdhanService extends Service {
         } else {
             startForeground(Notif.ID_ADHAN, Notif.adhan(this, name));
         }
+        if (QuranService.running) {
+            try { startService(new Intent(this, QuranService.class).setAction(QuranService.ACTION_PAUSE)); } catch (Exception ignored) {}
+        }
         play();
         return START_NOT_STICKY;
     }
@@ -89,7 +92,7 @@ public class AdhanService extends Service {
             for (String n : names) {
                 String l = n.toLowerCase(java.util.Locale.ROOT);
                 if (l.equals("adhan.mp3")) return "www/" + n;
-                if (other == null && (l.startsWith("adhan") || l.endsWith(".mp3") || l.endsWith(".mpeg") || l.endsWith(".m4a") || l.endsWith(".ogg") || l.endsWith(".wav") || l.endsWith(".aac") || l.endsWith(".opus"))) other = "www/" + n;
+                if (other == null && (l.endsWith(".mp3") || l.endsWith(".mpeg") || l.endsWith(".m4a") || l.endsWith(".ogg") || l.endsWith(".wav") || l.endsWith(".aac") || l.endsWith(".opus"))) other = "www/" + n;
             }
             return other;
         } catch (Exception e) {

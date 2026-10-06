@@ -50,14 +50,39 @@ public class Bridge {
     }
 
     @JavascriptInterface
-    public void mediaState(boolean playing, String title) {
-        try {
-            if (playing) {
-                act.startForegroundService(new Intent(act, QuranService.class).putExtra("title", title));
-            } else {
-                act.stopService(new Intent(act, QuranService.class));
-            }
-        } catch (Exception ignored) {}
+    public void mediaState(boolean playing, String title) { /* playback is native now */ }
+
+    // ----- Quran player (native, with lock-screen controls) -----
+    @JavascriptInterface
+    public void quranInit(String namesJson) { Alarms.prefs(act).edit().putString("surahNames", namesJson).apply(); }
+
+    @JavascriptInterface
+    public void quranPlay(int i) { QuranService.send(act, QuranService.ACTION_PLAY, new Intent().putExtra("i", i)); }
+
+    @JavascriptInterface
+    public void quranToggle(int i) {
+        if (QuranService.running) QuranService.send(act, QuranService.ACTION_TOGGLE, null);
+        else quranPlay(i);
+    }
+
+    @JavascriptInterface
+    public void quranRestart() { if (QuranService.running) QuranService.send(act, QuranService.ACTION_RESTART, null); }
+
+    @JavascriptInterface
+    public void quranSeek(double ms) {
+        if (QuranService.running) QuranService.send(act, QuranService.ACTION_SEEK, new Intent().putExtra("ms", (long) ms));
+    }
+
+    @JavascriptInterface
+    public void quranAutoNext(boolean on) { Alarms.prefs(act).edit().putBoolean("autoNext", on).apply(); }
+
+    @JavascriptInterface
+    public String quranState() { String s = QuranService.lastState(); return s == null ? "" : s; }
+
+    @JavascriptInterface
+    public String version() {
+        try { return act.getPackageManager().getPackageInfo(act.getPackageName(), 0).versionName; }
+        catch (Exception e) { return ""; }
     }
 
     @JavascriptInterface

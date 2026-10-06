@@ -10,8 +10,9 @@ android {
         applicationId = "com.momen.salati"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        val run = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
+        versionCode = run
+        versionName = "1.$run"
     }
 
     signingConfigs {
