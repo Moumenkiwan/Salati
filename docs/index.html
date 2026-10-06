@@ -64,6 +64,11 @@ h2{font-family:var(--f-display);font-size:clamp(32px,5vw,44px);line-height:1.2;m
 .shots img{border-radius:22px;border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.08);aspect-ratio:1/2;object-fit:cover;object-position:top;width:100%}
 .shots figcaption{font-size:14px;color:var(--muted);margin-top:8px;text-align:center}
 
+.live{display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:center}
+.phone-live{width:min(360px,100%);height:min(740px,82vh);border-radius:40px;padding:10px;background:#0A1312;box-shadow:0 24px 50px rgba(0,0,0,.25),inset 0 0 0 2px rgba(255,255,255,.08)}
+.phone-live iframe{width:100%;height:100%;border:0;border-radius:31px;background:#ECF0EC;display:block}
+.live-side p{color:var(--muted);max-width:30em;margin:0 0 16px}
+.live-side .btn.primary{color:#1B1408}
 .feats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .feat{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:20px}
 .feat .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--night);color:var(--gold);margin-bottom:12px}
@@ -91,6 +96,7 @@ footer{padding-block:36px 48px;color:var(--muted);font-size:14px;text-align:cent
 footer a{color:var(--teal)}
 
 @media (max-width:760px){
+  .live{grid-template-columns:1fr;justify-items:center;text-align:center}
   .hero .wrap{grid-template-columns:1fr}
   .phone{display:none}
   .feats{grid-template-columns:1fr 1fr}
@@ -123,22 +129,21 @@ footer a{color:var(--teal)}
       </div>
       <div class="meta"><span>آخر نسخة: <b id="ver">—</b></span><span>الحجم: <b id="size">≈ 5 ميجا</b></span><span>أندرويد 8 فما فوق · عربي وEnglish</span></div>
     </div>
-    <div class="phone"><img src="img/s1.jpg" alt="شاشة مواقيت الصلاة في تطبيق صلاتي"></div>
+    <div class="phone"><img src="img/s1.jpg?v=3" alt="شاشة مواقيت الصلاة في تطبيق صلاتي"></div>
   </div>
 </header>
 
 <main>
   <section>
     <div class="wrap">
-      <h2>لمحة عن التطبيق</h2>
+      <h2>جرِّب التطبيق الآن</h2>
       <p class="sub">واجهة بسيطة باللغتين العربية والإنجليزية، بالوضعين الفاتح والداكن.</p>
-      <div class="shots">
-        <figure><img src="img/s1.jpg" alt="" loading="lazy"><figcaption>المواقيت والعدّاد</figcaption></figure>
-        <figure><img src="img/s2.jpg" alt="" loading="lazy"><figcaption>المصحف بالرسم العثماني</figcaption></figure>
-        <figure><img src="img/s4.jpg" alt="" loading="lazy"><figcaption>الاستماع للدوسري</figcaption></figure>
-        <figure><img src="img/s3.jpg" alt="" loading="lazy"><figcaption>بوصلة القبلة</figcaption></figure>
-        <figure><img src="img/s6.jpg" alt="" loading="lazy"><figcaption>الوضع الداكن</figcaption></figure>
-        <figure><img src="img/s5.jpg" alt="" loading="lazy"><figcaption>English</figcaption></figure>
+      <div class="live">
+        <div class="phone-live"><iframe src="app/" title="تطبيق صلاتي" loading="lazy"></iframe></div>
+        <div class="live-side">
+          <p>هذه <b>نسخة حيّة</b> من التطبيق بآخر تحديث، وليست صورًا. جرِّب التنقل بين التبويبات في الأسفل، وزر <b>EN</b> للإنجليزية، وزر المظهر للوضع الداكن.</p>
+          <a class="btn primary small" href="app/">افتحها بملء الشاشة</a>
+        </div>
       </div>
     </div>
   </section>
