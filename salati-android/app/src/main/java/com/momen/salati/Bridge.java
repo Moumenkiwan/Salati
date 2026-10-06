@@ -108,6 +108,12 @@ public class Bridge {
     }
 
     @JavascriptInterface
+    public boolean isNight() {
+        int m = act.getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        return m == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+    }
+
+    @JavascriptInterface
     public String version() {
         try { return act.getPackageManager().getPackageInfo(act.getPackageName(), 0).versionName; }
         catch (Exception e) { return ""; }

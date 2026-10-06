@@ -75,6 +75,12 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    public void onConfigurationChanged(android.content.res.Configuration c) {
+        super.onConfigurationChanged(c);
+        js("window.onSystemTheme&&window.onSystemTheme()");
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         if (compass != null) compass.pauseSensors();
