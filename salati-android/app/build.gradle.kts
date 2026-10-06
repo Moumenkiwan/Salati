@@ -14,6 +14,15 @@ android {
         versionName = "1.0"
     }
 
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("salati.keystore")
+            storePassword = "salati123"
+            keyAlias = "salati"
+            keyPassword = "salati123"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
