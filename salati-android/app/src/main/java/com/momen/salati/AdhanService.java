@@ -89,7 +89,7 @@ public class AdhanService extends Service {
             for (String n : names) {
                 String l = n.toLowerCase(java.util.Locale.ROOT);
                 if (l.equals("adhan.mp3")) return "www/" + n;
-                if (other == null && (l.endsWith(".mp3") || l.endsWith(".m4a") || l.endsWith(".ogg") || l.endsWith(".wav") || l.endsWith(".aac"))) other = "www/" + n;
+                if (other == null && (l.startsWith("adhan") || l.endsWith(".mp3") || l.endsWith(".mpeg") || l.endsWith(".m4a") || l.endsWith(".ogg") || l.endsWith(".wav") || l.endsWith(".aac") || l.endsWith(".opus"))) other = "www/" + n;
             }
             return other;
         } catch (Exception e) {
