@@ -50,14 +50,18 @@ final class Updates {
                     JSONObject rel = new JSONObject(sb.toString());
                     String digits = rel.optString("tag_name", "").replaceAll("[^0-9]", "");
                     long latest = digits.isEmpty() ? 0 : Long.parseLong(digits);
-                    String url = null;
+                    // Updates download "salati-update.apk" so the stats page can tell updates from new installs.
+                    String url = null, anyApk = null;
                     JSONArray assets = rel.optJSONArray("assets");
                     if (assets != null) {
                         for (int i = 0; i < assets.length(); i++) {
                             JSONObject a = assets.getJSONObject(i);
-                            if (a.optString("name").endsWith(".apk")) { url = a.optString("browser_download_url"); break; }
+                            String n = a.optString("name");
+                            if (n.equals("salati-update.apk")) url = a.optString("browser_download_url");
+                            else if (n.endsWith(".apk") && anyApk == null) anyApk = a.optString("browser_download_url");
                         }
                     }
+                    if (url == null) url = anyApk;
                     if (url == null) url = rel.optString("html_url");
                     JSONObject o = new JSONObject();
                     o.put("latest", latest);
