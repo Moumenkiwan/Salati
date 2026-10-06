@@ -12,6 +12,12 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 public class AdhanService extends Service {
     static final String ACTION_STOP = "com.momen.salati.STOP_ADHAN";
     private MediaPlayer player;
@@ -38,26 +44,32 @@ public class AdhanService extends Service {
     private void play() {
         release();
         String saved = Alarms.prefs(this).getString("adhanUri", null);
-        boolean custom = saved != null;
-        Uri uri = custom ? Uri.parse(saved) : RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-        if (uri == null) uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        if (!start(uri) && custom) {
-            custom = false;
-            start(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM));
+        boolean ok = false;
+        if (saved != null) ok = start(Uri.parse(saved), null);           // user's own file
+        if (!ok) { String a = bundledAdhan(); if (a != null) ok = start(null, a); } // adhan bundled with the app
+        boolean longSound = ok;
+        if (!ok) {                                                        // last resort: phone alarm tone
+            Uri tone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+            if (tone == null) tone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            start(tone, null);
         }
-        // A system alarm tone may loop forever; cap it. A real adhan file stops on its own.
-        handler.postDelayed(this::stopSelf, custom ? 6 * 60_000L : 45_000L);
+        // An alarm tone may loop forever; cap it. A real adhan stops on its own.
+        handler.postDelayed(this::stopSelf, longSound ? 6 * 60_000L : 45_000L);
     }
 
-    private boolean start(Uri uri) {
-        if (uri == null) return false;
+    private boolean start(Uri uri, String asset) {
+        if (uri == null && asset == null) return false;
         try {
             player = new MediaPlayer();
             player.setAudioAttributes(new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_ALARM)
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build());
-            player.setDataSource(this, uri);
+            if (asset != null) {
+                player.setDataSource(assetToFile(asset).getAbsolutePath());
+            } else {
+                player.setDataSource(this, uri);
+            }
             player.setOnCompletionListener(mp -> stopSelf());
             player.prepare();
             player.start();
@@ -66,6 +78,35 @@ public class AdhanService extends Service {
             release();
             return false;
         }
+    }
+
+    /** Finds the bundled adhan: www/adhan.mp3, or any other audio file placed in assets/www. */
+    private String bundledAdhan() {
+        try {
+            String[] names = getAssets().list("www");
+            if (names == null) return null;
+            String other = null;
+            for (String n : names) {
+                String l = n.toLowerCase(java.util.Locale.ROOT);
+                if (l.equals("adhan.mp3")) return "www/" + n;
+                if (other == null && (l.endsWith(".mp3") || l.endsWith(".m4a") || l.endsWith(".ogg") || l.endsWith(".wav") || l.endsWith(".aac"))) other = "www/" + n;
+            }
+            return other;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Copies an asset to the cache once, so it plays whether or not the APK stored it compressed. */
+    private File assetToFile(String asset) throws IOException {
+        File out = new File(getCacheDir(), "bundled_" + asset.replace('/', '_'));
+        if (out.exists() && out.length() > 0) return out;
+        try (InputStream in = getAssets().open(asset); OutputStream os = new FileOutputStream(out)) {
+            byte[] buf = new byte[64 * 1024];
+            int n;
+            while ((n = in.read(buf)) > 0) os.write(buf, 0, n);
+        }
+        return out;
     }
 
     private void release() {
