@@ -183,12 +183,12 @@ select,input[type=search]{background:var(--surface);border:1px solid var(--line)
   <div class="adhanbox">
     <div class="row" style="justify-content:space-between"><b>الأذان</b><span class="small muted">اضغط الجرس 🔔 جنب الصلاة اللي بدك يأذّن عليها</span></div>
     <div class="row">
-      <span class="small muted">الصوت:</span><span class="small" id="adhanSrcName">نغمة تنبيه</span>
-      <label class="chip" for="adhanFile" style="cursor:pointer">اختيار ملف أذان</label>
+      <span class="small muted">الصوت:</span><span class="small" id="adhanSrcName">الأذان الأساسي</span>
+      <label class="chip" for="adhanFile" style="cursor:pointer">تغيير صوت الأذان</label>
       <input type="file" id="adhanFile" accept="audio/*" hidden>
       <button class="chip" id="adhanTest">تجربة</button>
     </div>
-    <span class="small muted" id="adhanNote">الأذان بيشتغل والتطبيق مفتوح أو شغّال بالخلفية. حمّل صوت أذان (mp3) من تلفونك واختاره هون.</span>
+    <span class="small muted" id="adhanNote">الأذان بيشتغل والتطبيق مفتوح أو شغّال بالخلفية. وإذا حابب صوت ثاني بتقدر تغيّره.</span>
   </div>
   <div class="go">
     <button class="gocard" data-go="quran"><span class="gt">اقرأ القرآن</span><span class="small muted">المصحف كامل · ١١٤ سورة</span></button>
@@ -384,7 +384,7 @@ function tick(){
 let adhanOn=store.get("adhanOn",{});let fired=store.get("adhanFired",{});
 const aA=$("adhanAudio");let actx=null,chimeStop=null,adhanBlobUrl=null;
 function unlockAudio(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume()}catch(e){}
-  if(adhanBlobUrl&&!aA.dataset.primed){aA.muted=true;const p=aA.play();if(p&&p.then)p.then(()=>{aA.pause();aA.currentTime=0;aA.muted=false;aA.dataset.primed=1}).catch(()=>{aA.muted=false})}}
+  if(!aA.dataset.primed){if(!aA.src)aA.src=adhanBlobUrl||"adhan.mp3";aA.muted=true;const p=aA.play();if(p&&p.then)p.then(()=>{aA.pause();aA.currentTime=0;aA.muted=false;aA.dataset.primed=1}).catch(()=>{aA.muted=false})}}
 function syncNative(){if(!NATIVE||!today)return;const list=[];for(let off=0;off<30;off++){const d=off?dayTimes(off):today;for(const k of ["fajr","dhuhr","asr","maghrib","isha"])if(adhanOn[k])list.push({n:NAMES[k],t:d[k].getTime()})}
   try{Android.scheduleAdhan(JSON.stringify(list))}catch(e){}}
 function toggleAdhan(k,b){unlockAudio();adhanOn[k]=!adhanOn[k];store.set("adhanOn",adhanOn);b.setAttribute("aria-pressed",adhanOn[k]);syncNative();if(NATIVE)return;
@@ -396,7 +396,7 @@ function chime(){if(!actx)return;const t0=actx.currentTime;const notes=[[659,0],
 function playAdhan(k){
   if(typeof au!=="undefined"&&!au.paused)au.pause();
   $("adhanName").textContent=k==="test"?"تجربة الأذان":"أذان "+NAMES[k];$("adhanAlert").hidden=false;
-  if(adhanBlobUrl){aA.src=adhanBlobUrl;aA.currentTime=0;const p=aA.play();if(p&&p.catch)p.catch(()=>{unlockAudio();chime()})}else{unlockAudio();chime()}
+  aA.src=adhanBlobUrl||"adhan.mp3";aA.currentTime=0;aA.onerror=()=>{aA.onerror=null;unlockAudio();chime()};const p=aA.play();if(p&&p.catch)p.catch(()=>{unlockAudio();chime()})
   if(k!=="test"&&"Notification" in window&&Notification.permission==="granted"){const body="حان الآن موعد أذان "+NAMES[k]+" · "+CITIES[cityIdx][0];
     try{navigator.serviceWorker&&navigator.serviceWorker.getRegistration?navigator.serviceWorker.getRegistration().then(r=>r?r.showNotification("صلاتي",{body,icon:"icon-192.png",tag:"adhan"}):new Notification("صلاتي",{body})):new Notification("صلاتي",{body})}catch(e){}}}
 function stopAdhan(){aA.pause();if(chimeStop)chimeStop();$("adhanAlert").hidden=true}
@@ -404,7 +404,7 @@ $("adhanStop").onclick=stopAdhan;aA.addEventListener("ended",()=>{$("adhanAlert"
 $("adhanTest").onclick=()=>{if(NATIVE){Android.testAdhan();return}unlockAudio();playAdhan("test")};
 if(NATIVE){const lab=document.querySelector('label[for="adhanFile"]');lab.removeAttribute("for");lab.onclick=()=>Android.pickAdhan();
   window.onAdhanPicked=n=>{$("adhanSrcName").textContent=n};try{const n=Android.adhanName();if(n)$("adhanSrcName").textContent=n}catch(e){}
-  $("adhanNote").textContent="الأذان بيشتغل على وقته حتى لو التطبيق مسكّر. إذا ما اخترت ملف أذان، بيشتغل صوت المنبّه تبع التلفون.";
+  $("adhanNote").textContent="الأذان بيشتغل على وقته حتى لو التطبيق مسكّر. ";
   $("znNote").textContent="بيطلعلك ذكر كإشعار على شاشة القفل حتى لو التطبيق مسكّر (بيسكت بين ١٢ و٥ الفجر)."}
 function checkAdhan(now){if(NATIVE)return;for(const k of ["fajr","dhuhr","asr","maghrib","isha"]){if(!adhanOn[k]||!today)continue;const t=today[k].getTime();const key=dayKey+":"+k;
   if(now>=t&&now-t<3*60000&&!fired[key]){fired={[key]:1,...Object.fromEntries(Object.entries(fired).filter(([x])=>x.startsWith(dayKey)))};store.set("adhanFired",fired);playAdhan(k)}}}
